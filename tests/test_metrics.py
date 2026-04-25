@@ -42,8 +42,8 @@ def test_cumulative_spd_perfect_fairness():
     seen; once both groups appear the running average stabilises at 0.
     """
     n = 500
-    sensitive = np.tile([0, 1], n // 2)     # alternating: unpriv, priv, ...
-    predictions = np.tile([1, 1], n // 2)   # both always get label 1
+    sensitive = np.tile([0, 1], n // 2)
+    predictions = np.tile([1, 1], n // 2)
     y_true = np.ones(n, dtype=int)
     cspd = cumulative_spd(predictions, sensitive, y_true)
     # After the first pair (t≥1) SPD should be 0 since rates are equal
@@ -92,8 +92,8 @@ def test_cumulative_eod_perfect_tpr():
     """Both groups have equal TPR → CEOD ≈ 0."""
     n = 400
     sensitive = np.tile([0, 1], n // 2)
-    y_true = np.tile([1, 1], n // 2)         # all positive
-    predictions = np.tile([1, 1], n // 2)    # all correctly identified
+    y_true = np.tile([1, 1], n // 2)
+    predictions = np.tile([1, 1], n // 2)
     ceod = cumulative_eod(predictions, sensitive, y_true)
     assert np.allclose(ceod[-20:], 0.0, atol=1e-9)
 
@@ -103,7 +103,7 @@ def test_cumulative_eod_biased():
     n = 200
     sensitive = np.array([1, 0] * (n // 2))
     y_true = np.ones(n, dtype=int)
-    predictions = sensitive.copy()   # only privileged get 1
+    predictions = sensitive.copy()
     ceod = cumulative_eod(predictions, sensitive, y_true)
     assert ceod[-1] > 0.5
 
