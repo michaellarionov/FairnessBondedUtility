@@ -3,15 +3,24 @@
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 import pytest
 
-from fbu.data.adult import CONTINUOUS, N_TEST, N_TRAIN, base_rates, load_raw
+from fbu.data.adult import (
+    BUNDLED_TARGET_COLUMN,
+    CONTINUOUS,
+    N_TEST,
+    N_TRAIN,
+    base_rates,
+    load_adult,
+    load_raw,
+)
 from fbu.metrics import balanced_accuracy, eod, recall, spd
 from fbu.models.scorers import LogitScorer, LPMScorer
 from fbu.pseudo import majority_label
 from fbu.techniques.base import fit_original
 
-from .conftest import requires_adult
+from .conftest import requires_adult, requires_both_adult_sources
 
 pytestmark = requires_adult
 
@@ -22,6 +31,54 @@ def test_row_counts():
     assert len(raw) == N_TRAIN + N_TEST == 48842
     assert int((raw["split"] == "train").sum()) == N_TRAIN
     assert int((raw["split"] == "test").sum()) == N_TEST
+    # The split is positional in the bundled CSV: train rows first, test after.
+    assert raw["split"].iloc[N_TRAIN - 1] == "train"
+    assert raw["split"].iloc[N_TRAIN] == "test"
+
+
+@requires_both_adult_sources
+def test_bundled_csv_and_uci_pair_are_the_same_data():
+    """The dataset of record must be interchangeable with the raw UCI files.
+
+    Both are normalised to stripped strings first, since the CSV ships with a
+    header row, the target column named ``Probability``, and the test split's
+    trailing label periods already removed (docs/DATA.md). After that the frames
+    must be equal cell for cell — otherwise the checked-in file has drifted from
+    the source it claims to reproduce.
+    """
+    from_csv = load_raw(source="csv")
+    from_uci = load_raw(source="uci", allow_download=False)
+
+    assert list(from_csv.columns) == list(from_uci.columns)
+    assert BUNDLED_TARGET_COLUMN not in from_csv.columns
+    for frame in (from_csv, from_uci):
+        for column in frame.columns:
+            frame[column] = frame[column].astype(str).str.strip()
+    pd.testing.assert_frame_equal(from_csv, from_uci)
+
+
+@requires_both_adult_sources
+def test_both_sources_produce_identical_design_matrices():
+    """Equivalence has to survive preprocessing, not just the raw read."""
+    from_csv = load_adult(source="csv")
+    from_uci = load_adult(source="uci")
+
+    assert from_csv.feature_names == from_uci.feature_names
+    for attribute in ("X_train", "y_train", "s_train", "X_test", "y_test", "s_test"):
+        assert np.array_equal(
+            getattr(from_csv, attribute), getattr(from_uci, attribute)
+        ), attribute
+
+
+def test_truncated_csv_is_rejected(tmp_path):
+    """A short or re-sorted file cannot pass as a valid canonical split."""
+    raw = load_raw()
+    truncated = raw.drop(columns=["split"]).head(1000)
+    truncated = truncated.rename(columns={"income": BUNDLED_TARGET_COLUMN})
+    path = tmp_path / "adult_full.csv"
+    truncated.to_csv(path, index=False)
+    with pytest.raises(ValueError, match="expected 48842"):
+        load_raw(root=tmp_path, source="csv")
 
 
 def test_test_split_labels_are_cleaned():

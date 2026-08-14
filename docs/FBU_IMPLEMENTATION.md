@@ -173,6 +173,12 @@ cases = n_runs × n_fairness_metrics × n_performance_metrics × n_datasets     
 
 Source: UCI Adult, `adult.data` (32,561) + `adult.test` (16,281) = 48,842 rows. [certain]
 
+> **Dataset of record: `data/adult/adult_full.csv`,** checked into the repository —
+> those same two splits concatenated in canonical order, verified equal to the raw
+> UCI pair cell for cell. It is what the loader reads by default and what produced
+> every number in `docs/RESULTS.md`. Provenance, checksums and the packaging
+> differences the loader normalises are in `docs/DATA.md`.
+
 ```
 Target      : income  ">50K" -> 1 (favorable),  "<=50K" -> 0
 Sensitive   : sex     Male -> 1 (privileged),   Female -> 0

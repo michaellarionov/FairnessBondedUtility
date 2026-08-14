@@ -13,15 +13,22 @@ particular model, and nothing here touches streaming infrastructure.
   seven places where the paper is under-specified.
 - `docs/DEVIATIONS.md` — every choice made beyond what the paper states (`[D1]`–`[D9]`).
 - `docs/RESULTS.md` — measured Adult numbers and the §6.1 validation checks.
+- `docs/DATA.md` — the dataset of record, its checksums, and its equivalence to
+  the raw UCI files.
 
 ## Install
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-python -c "from fbu.data.adult import download; download()"   # fetches UCI Adult
 pytest
 ```
+
+No download step: the dataset used for every reported number is checked in at
+`data/adult/adult_full.csv` (48,842 rows, train and test concatenated in canonical
+order — see `docs/DATA.md`). To read the raw UCI pair instead, fetch it with
+`python -c "from fbu.data.adult import download; download()"` and pass
+`load_adult(source="uci")`; the two are verified to be the same data.
 
 Dependencies are numpy, pandas, scikit-learn and matplotlib, plus pytest and
 hypothesis for tests. `aif360` and `fairlearn` are deliberately absent: their

@@ -16,6 +16,10 @@ Settings: canonical 32,561 / 16,281 split, all FBU inputs from test predictions,
 `n_seeds = 20`, `n_runs = 5`, raw (non-enveloped) baseline curves, region-2 areas
 normalised by `A_max`.
 
+Dataset: `data/adult/adult_full.csv`, checked into the repository and documented
+in `docs/DATA.md` — the UCI Adult train and test splits concatenated in canonical
+order, verified cell for cell against the raw UCI files.
+
 ## 1. Base model
 
 Lands inside every band predicted in spec §3.3, so the group coding and the

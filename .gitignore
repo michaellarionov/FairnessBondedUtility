@@ -8,6 +8,12 @@ __pycache__/
 build/
 dist/
 
-# Raw UCI Adult extract and generated artefacts are not checked in.
-data/
+# Generated artefacts are not checked in.
 outputs/
+
+# The bundled Adult CSV is the dataset of record (see docs/DATA.md) and IS checked
+# in; the raw UCI pair that `download()` fetches is not.
+data/*
+!data/adult/
+data/adult/*
+!data/adult/adult_full.csv
